@@ -1,18 +1,21 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
 class Epoll;
+class EventLoop;
 
 class Channel{
 private:
-    Epoll *ep;
+    EventLoop *elp;
     int fd;
     uint32_t events, revents;
     bool inEpoll;
+    std::function<void()> callback;
 
 public:
-    Channel(int, Epoll *);
+    Channel(int, EventLoop *);
     ~Channel();
 
     void enableReading();
@@ -25,4 +28,6 @@ public:
     void setInEpoll();
 
     void setRevents(uint32_t);
+    void handleEvent();
+    void setCallback(std::function<void()>);
 };

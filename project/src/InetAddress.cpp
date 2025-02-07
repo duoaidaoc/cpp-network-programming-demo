@@ -18,6 +18,11 @@ InetAddress::~InetAddress(){
     
 }
 
-uint32_t InetAddress::getPort(){
+uint16_t InetAddress::getPort(){
     return ntohs(addr.sin_port);
+}
+
+std::string InetAddress::getIp()
+{
+    return inet_ntoa(addr.sin_addr);
 }

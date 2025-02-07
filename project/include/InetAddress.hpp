@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <string>
 
 class InetAddress{
 public:
@@ -10,5 +11,6 @@ public:
     InetAddress(const char* ip, uint16_t port);
     ~InetAddress();
 
-    uint32_t getPort();
+    uint16_t getPort();
+    std::string getIp();
 };

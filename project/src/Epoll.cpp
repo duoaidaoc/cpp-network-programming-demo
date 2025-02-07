@@ -4,7 +4,7 @@
 #include "util.hpp"
 #include <cstring>
 #include <unistd.h>
-
+#include "Channel.hpp"
 
 #define MAX_EVENTS 1000
 
@@ -45,24 +45,32 @@ void Epoll::updateChannel(Channel *channel)
             "Failed when modifying an existing event."
         );
     }
-}
+ }
 
-void Epoll::addFd(int fd, uint32_t op)
-{
-    // op 表示
-    /*
-        EPOLLIN 可读
-        EPOLLOUT 可写
-        EPOLLERR 错误
-        EPOLLHUP 对侧是否关闭连接
-        EPOLLET 边缘触发
-    */
-    epoll_event ev;
-    memset(&ev, 0, sizeof(ev));
-    ev.data.fd = fd;
-    ev.events = op;
-    errif(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "Failed when adding event into epoll.");
-}
+ /**
+  * @brief 由于使用Channel这个函数就不能使用了否则由于union把void* 和 uint32_t 搞在一起，会出野指针。
+  */
+
+// void Epoll::addFd(int fd, uint32_t op)
+// {
+//     // op 表示
+//     /*
+//         EPOLLIN 可读
+//         EPOLLOUT 可写
+//         EPOLLERR 错误
+//         EPOLLHUP 对侧是否关闭连接
+//         EPOLLET 边缘触发
+//     */
+//     epoll_event ev;
+//     memset(&ev, 0, sizeof(ev));
+//     ev.data.fd = fd;
+//     ev.events = op;
+//     errif(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "Failed when adding event into epoll.");
+// }
+
+/**
+ * @brief 这个同上
+ */
 
 // std::unique_ptr<std::vector<epoll_event>> Epoll::poll(int timeout)
 // {
@@ -75,14 +83,13 @@ void Epoll::addFd(int fd, uint32_t op)
 //     return activeEvents;
 // }
 
-std::unique_ptr<std::vector<Channel>> Epoll::poll(int timeout)
+std::unique_ptr<std::vector<Channel*>> Epoll::poll(int timeout)
 {
-    auto activeEvents = std::make_unique<std::vector<Channel> >();
+    auto activeEvents = std::make_unique<std::vector<Channel*> >();
     int nfds = epoll_wait(epfd, events, MAX_EVENTS, timeout);
     // errif(nfds == -1, "epoll wait error.");
     for(int i = 0; i < nfds; i++){
-        Channel channel(events[i].data.fd, this);
-        activeEvents->push_back(channel);
+        activeEvents->push_back((Channel*)events[i].data.ptr);
     }
     return activeEvents;
 }
