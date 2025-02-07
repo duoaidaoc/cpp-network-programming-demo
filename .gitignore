@@ -1,0 +1,27 @@
+# 编译输出
+/build/
+cmake-build-debug/
+cmake-build-release/
+
+# CMake缓存文件
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# IDE配置文件
+.vscode/
+.idea/
+
+# 系统生成文件
+.DS_Store
+Thumbs.db
+
+# 其他
+*.log
+*.bak
+*.swp
+
+# 忽略无后缀的可执行文件
+*~
