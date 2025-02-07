@@ -1,6 +1,6 @@
 #pragma once
 
-#include "InetAddress.hpp"
+class InetAddress;
 
 class Socket{
 private:

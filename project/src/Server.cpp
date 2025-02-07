@@ -2,6 +2,8 @@
 #include "Socket.hpp"
 #include "InetAddress.hpp"
 #include "Channel.hpp"
+#include "Acceptor.hpp"
+
 #include <functional>
 #include <cstring>
 #include <unistd.h>
@@ -15,11 +17,9 @@ Server::Server(EventLoop *_eventloop) : eventloop(_eventloop){
     socket->bind(serv_addr);
     socket->listen(); 
     socket->setnonblocking();
-       
-    Channel *channel = new Channel(socket->getFd(),eventloop);
-    std::function<void()> callback = std::bind(&Server::newConnection, this, socket);
-    channel->setCallback(callback);
-    channel->enableReading();
+
+    acceptor = new Acceptor(eventloop, socket, this);
+    
 }
 
 Server::~Server()
@@ -50,15 +50,4 @@ void Server::handleReadEvent(int sockfd){
             break;
         }
     }
-}
-
-void Server::newConnection(Socket *_socket){
-    InetAddress *ip = new InetAddress();      //会发生内存泄露！没有delete
-    Socket *newSocket = new Socket(_socket->accept(ip));       //会发生内存泄露！没有delete
-    printf("new client fd %d! IP: %s Port: %u\n", newSocket->getFd(), ip->getIp().c_str(), ip->getPort());
-    newSocket->setnonblocking();
-    Channel *channel = new Channel(newSocket->getFd(),eventloop);
-    std::function<void()> callback = std::bind(&Server::handleReadEvent, this, newSocket->getFd());
-    channel->setCallback(callback);
-    channel->enableReading();
 }

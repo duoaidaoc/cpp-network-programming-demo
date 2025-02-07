@@ -1,5 +1,6 @@
 #include "Socket.hpp"
 #include "util.hpp"
+#include "InetAddress.hpp"
 
 #include<fcntl.h>
 #include<unistd.h>
