@@ -9,22 +9,33 @@
 #include <unistd.h>
 
 
-Acceptor::Acceptor(EventLoop* _eventloop, Socket* _socket, Server* _server): eventloop(_eventloop),socket(_socket),server(_server)
+Acceptor::Acceptor(EventLoop* _eventloop): eventloop(_eventloop)
 {
-    Channel *channel = new Channel(socket->getFd(),eventloop);
-    std::function<void()> callback = std::bind(&Acceptor::newConnection, this, socket);
-    channel->setCallback(callback);
-    channel->enableReading();
+    
+    socket = new Socket();
+    ip = new InetAddress("127.0.0.1", 0);
+    socket->bind(ip);
+    socket->listen(); 
+    socket->setnonblocking();
+    acceptChannel = new Channel(socket->getFd(), eventloop);
+    // 这里不能直接用c++ functional? 只能包装一下？
+    std::function<void()> cb = std::bind(&Acceptor::acceptConnection, this);
+    acceptChannel->setCallback(cb);
+    acceptChannel->enableReading();
 }
 
-void Acceptor::newConnection(Socket* _socket)
+Acceptor::~Acceptor()
 {
-    InetAddress *ip = new InetAddress();      //会发生内存泄露！没有delete
-    Socket *newSocket = new Socket(_socket->accept(ip));       //会发生内存泄露！没有delete
-    printf("new client fd %d! IP: %s Port: %u\n", newSocket->getFd(), ip->getIp().c_str(), ip->getPort());
-    newSocket->setnonblocking();
-    Channel *channel = new Channel(newSocket->getFd(),eventloop);
-    std::function<void()> callback = std::bind(&Server::handleReadEvent, server, newSocket->getFd());
-    channel->setCallback(callback);
-    channel->enableReading();
+    delete socket;
+    delete ip;
+}
+
+void Acceptor::acceptConnection()
+{
+    newConnectionCallback(socket);
+}
+
+void Acceptor::setNewConnectionCallback(std::function<void(Socket *)>_cb)
+{
+    newConnectionCallback = _cb;
 }

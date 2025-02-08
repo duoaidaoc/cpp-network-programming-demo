@@ -1,15 +1,23 @@
 #pragma once
 
+#include<functional>
+
 class EventLoop;
 class Socket;
-class Server;
+class InetAddress;
+class Channel;
 
 class Acceptor{
 private:
     EventLoop* eventloop;
     Socket* socket;
-    Server* server;
+    InetAddress* ip;
+    Channel *acceptChannel;
 public:
-    Acceptor(EventLoop*, Socket*, Server*);
-    void newConnection(Socket*);
+    Acceptor(EventLoop*);
+    ~Acceptor();
+    void acceptConnection();
+
+    std::function<void(Socket*)> newConnectionCallback;
+    void setNewConnectionCallback(std::function<void(Socket*)>);
 };

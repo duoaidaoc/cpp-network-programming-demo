@@ -12,19 +12,14 @@
 #define READ_BUFFER 1024
 
 Server::Server(EventLoop *_eventloop) : eventloop(_eventloop){    
-    Socket *socket = new Socket();
-    InetAddress *serv_addr = new InetAddress("127.0.0.1", 0);
-    socket->bind(serv_addr);
-    socket->listen(); 
-    socket->setnonblocking();
-
-    acceptor = new Acceptor(eventloop, socket, this);
-    
+    acceptor = new Acceptor(eventloop);
+    auto cb = std::bind(&Server::newConnection,this,std::placeholders::_1);
+    acceptor->setNewConnectionCallback(cb);
 }
 
 Server::~Server()
 {
-    
+    delete acceptor;
 }
 
 void Server::handleReadEvent(int sockfd){
@@ -50,4 +45,15 @@ void Server::handleReadEvent(int sockfd){
             break;
         }
     }
+}
+
+void Server::newConnection(Socket *serv_sock){
+    InetAddress *clnt_addr = new InetAddress();      //会发生内存泄露！没有delete
+    Socket *clnt_sock = new Socket(serv_sock->accept(clnt_addr));       //会发生内存泄露！没有delete
+    printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->getFd(), inet_ntoa(clnt_addr->addr.sin_addr), ntohs(clnt_addr->addr.sin_port));
+    clnt_sock->setnonblocking();
+    Channel *clntChannel = new Channel(clnt_sock->getFd(),eventloop);
+    std::function<void()> cb = std::bind(&Server::handleReadEvent, this, clnt_sock->getFd());
+    clntChannel->setCallback(cb);
+    clntChannel->enableReading();
 }
