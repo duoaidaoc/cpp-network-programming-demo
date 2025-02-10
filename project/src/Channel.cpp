@@ -8,6 +8,7 @@ Channel::Channel(int _fd, EventLoop *_elp)
 }
 
 Channel::~Channel(){
+    
 }
 
 void Channel::enableReading(){

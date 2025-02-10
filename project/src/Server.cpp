@@ -3,6 +3,7 @@
 #include "InetAddress.hpp"
 #include "Channel.hpp"
 #include "Acceptor.hpp"
+#include "Connection.hpp"
 
 #include <functional>
 #include <cstring>
@@ -47,13 +48,18 @@ void Server::handleReadEvent(int sockfd){
     }
 }
 
-void Server::newConnection(Socket *serv_sock){
-    InetAddress *clnt_addr = new InetAddress();      //会发生内存泄露！没有delete
-    Socket *clnt_sock = new Socket(serv_sock->accept(clnt_addr));       //会发生内存泄露！没有delete
-    printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->getFd(), inet_ntoa(clnt_addr->addr.sin_addr), ntohs(clnt_addr->addr.sin_port));
-    clnt_sock->setnonblocking();
-    Channel *clntChannel = new Channel(clnt_sock->getFd(),eventloop);
-    std::function<void()> cb = std::bind(&Server::handleReadEvent, this, clnt_sock->getFd());
-    clntChannel->setCallback(cb);
-    clntChannel->enableReading();
+void Server::newConnection(Socket *clnt_socket){
+    auto newConnection = new Connection(eventloop,clnt_socket);
+    auto cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
+    // 关闭 close 时
+    newConnection->setDeleteConnectionCallback(cb);
+    connections[clnt_socket->getFd()] = newConnection;
 }
+
+void Server::deleteConnection(Socket* clnt_socket)
+{
+    auto connection = connections[clnt_socket->getFd()];
+    connections.erase(clnt_socket->getFd());
+    delete connection;
+}
+
