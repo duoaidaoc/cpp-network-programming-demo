@@ -19,6 +19,7 @@ int main(){
     InetAddress * server_ip = new InetAddress("127.0.0.1", port);
     client->connect(server_ip);
     client->setnonblocking();
+    delete server_ip;
 
     while(true){
         char buf[BUFFER_SIZE];  //在这个版本，buf大小必须大于或等于服务器端buf大小，不然会出错，想想为什么？
@@ -42,6 +43,6 @@ int main(){
         // }
     }
     close(client->getFd());
-    
+    delete client;
     return 0;
 }

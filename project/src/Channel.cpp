@@ -42,7 +42,7 @@ void Channel::setRevents(uint32_t _ev){
 
 void Channel::handleEvent()
 {
-    callback();
+    elp->addThread(callback);
 }
 
 void Channel::setCallback(std::function<void()>_callback)
