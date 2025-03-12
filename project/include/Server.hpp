@@ -15,10 +15,11 @@ private:
     std::map<int,Connection*>connections;
 
 public:
-    Server(EventLoop*);
+    Server();
     ~Server();
 
     // void handleReadEvent(int);
     void newConnection(Socket*);
     void deleteConnection(Socket*);
+    void start();
 };

@@ -4,6 +4,7 @@
 #include "Channel.hpp"
 #include "Acceptor.hpp"
 #include "Connection.hpp"
+#include "EventLoop.hpp"
 
 #include <functional>
 #include <cstring>
@@ -12,7 +13,8 @@
 
 #define READ_BUFFER 1024
 
-Server::Server(EventLoop *_eventloop) : eventloop(_eventloop){    
+Server::Server(){
+    eventloop = new EventLoop();    
     acceptor = new Acceptor(eventloop);
     auto cb = std::bind(&Server::newConnection,this,std::placeholders::_1);
     acceptor->setNewConnectionCallback(cb);
@@ -21,6 +23,7 @@ Server::Server(EventLoop *_eventloop) : eventloop(_eventloop){
 Server::~Server()
 {
     delete acceptor;
+    delete eventloop;
 }
 
 // void Server::handleReadEvent(int sockfd){
@@ -63,3 +66,7 @@ void Server::deleteConnection(Socket* clnt_socket)
     delete connection;
 }
 
+void Server::start()
+{
+    eventloop->loop();
+}

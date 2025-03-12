@@ -5,10 +5,7 @@
 
 
 int main() {
-    EventLoop *loop = new EventLoop();
-    Server *server = new Server(loop);
-    loop->loop();
+    Server *server = new Server();
     delete server;
-    delete loop;
     return 0;
 }
